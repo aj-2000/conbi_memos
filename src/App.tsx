@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
 import AuthForm from "./components/AuthForm";
 import supabase from "./utils/supabase.js";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import toast, { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 type Todo = {
   task: string;
@@ -27,27 +28,29 @@ function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [updated, setUpdated] = useState<string>();
   const [memos, setMemos] = useState<MemoBlock[]>([]);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data, error }: any) => {
-        setUser(data.session.user);
-        console.log(data.session.user);
-      })
-      .catch((err: any) => {
-        console.log(err);
-      });
+    if (!user?.id) {
+      supabase.auth
+        .getSession()
+        .then(({ data, error }: any) => {
+          setUser(data.session.user);
+        })
+        .catch((err: any) => {
+          console.log(err);
+        });
+    }
   }, []);
 
   const fetchMemos = () => {
+    setIsLoading(true);
     supabase
       .from("memos")
       .select()
       .order("created_at", { ascending: false })
       .eq("userId", user?.id)
       .then(({ data, error }) => {
-        console.log(data);
+        setIsLoading(false);
         const memosData: MemoBlock[] = [];
         data?.map((memo) => {
           memosData.push(memo);
@@ -58,19 +61,25 @@ function App() {
 
   useEffect(() => {
     if (user?.id) fetchMemos();
+    return () => {
+      setMemos([]);
+    };
   }, [user?.id, updated]);
 
   const logout = async () => {
+    setIsLoading(true);
     await supabase.auth.signOut().then(({ error }: any) => {
       if (error) {
         console.log(error);
       } else {
         setUser(null);
+        setIsLoading(false);
       }
     });
   };
 
   const saveMemo = () => {
+    setIsLoading(false);
     supabase
       .from("memos")
       .insert({
@@ -91,14 +100,18 @@ function App() {
         } else {
           toast("Failed to save memo.");
         }
+        setIsLoading(false);
       });
   };
   const deleteMemo = async (id: string) => {
+    setIsLoading(false);
     const { error } = await supabase.from("memos").delete().eq("id", id);
     if (error) {
       console.log(error);
+      setIsLoading(false);
     } else {
       setUpdated(Date.now().toString());
+      setIsLoading(false);
     }
   };
   return (
@@ -132,142 +145,156 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="flex flex-col w-[800px]">
-            <span>Memos</span>
-            <div className="bg-white p-4 rounded flex flex-col gap-4 border-1 border-gray-200 mx-12 my-6 shadow">
-              <textarea
-                onChange={(e) => setText(e.target.value)}
-                className="p-2"
-                rows={4}
-                value={text}
-                placeholder="Any Thoughts..."
-              />
-              <div className="flex flex-col gap-2">
-                <span>Tasks</span>
-                <div className="flex justify-between">
-                  <input
-                    onChange={(e) => setTask(e.target.value)}
-                    type="text"
-                    value={task}
-                    className="border w-[500px]"
-                  />
-                  <button
-                    onClick={() => {
-                      setTodos((prevTodos) => [
-                        ...prevTodos,
-                        {
-                          task: task || "",
-                          isCompleted: false,
-                          id: uuidv4(),
-                        },
-                      ]);
-                      setTask("");
-                      console.log(todos);
-                    }}
-                  >
-                    Add
-                  </button>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <div className="flex flex-col w-[800px]">
+              <span>Memos</span>
+              <div className="bg-white p-4 rounded flex flex-col gap-4 border-1 border-gray-200 mx-12 my-6 shadow">
+                <textarea
+                  onChange={(e) => setText(e.target.value)}
+                  className="p-2"
+                  rows={4}
+                  value={text}
+                  placeholder="Any Thoughts..."
+                />
+                <div className="flex flex-col gap-2">
+                  <span>Tasks</span>
+                  <div className="flex justify-between">
+                    <input
+                      onChange={(e) => setTask(e.target.value)}
+                      type="text"
+                      value={task}
+                      className="border w-[500px]"
+                    />
+                    <button
+                      onClick={() => {
+                        setTodos((prevTodos) => [
+                          ...prevTodos,
+                          {
+                            task: task || "",
+                            isCompleted: false,
+                            id: uuidv4(),
+                          },
+                        ]);
+                        setTask("");
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {todos.map((todo) => {
+                    return (
+                      <span key={todo.id} className="text-black">
+                        {todo.task}
+                      </span>
+                    );
+                  })}
                 </div>
-                {todos.map((todo) => {
+                <div className="flex flex-col gap-2">
+                  <span>Enter Some JS Code</span>
+                  <CodeEditor
+                    value={code}
+                    language="js"
+                    placeholder="Please enter JS code."
+                    onChange={(evn) => setCode(evn.target.value)}
+                    padding={15}
+                    style={{
+                      fontSize: 12,
+                      backgroundColor: "#f5f5f5",
+                      fontFamily:
+                        "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                    }}
+                  />
+                </div>
+                <div>
+                  <button onClick={saveMemo}>Save</button>
+                </div>
+              </div>
+              <>
+                {memos.map((memo, memoIndex) => {
                   return (
-                    <span key={todo.id} className="text-black">
-                      {todo.task}
-                    </span>
+                    <>
+                      <div
+                        key={memo.id}
+                        className="bg-white p-4 rounded flex flex-col"
+                      >
+                        <p key={memo.id + "p"}>{memo.text}</p>
+                        <div key={memo.id + "div"} className="flex flex-col">
+                          <span key={memo.id + "span"}>Tasks</span>
+                          {memo.todos.map((todo, todoIndex) => {
+                            return (
+                              <>
+                                <div
+                                  className="flex justify-between"
+                                  key={todo.id}
+                                >
+                                  <div
+                                    key={todo.id + "div"}
+                                    onClick={() => {
+                                      setIsLoading(true);
+                                      setMemos((prevMemos) => {
+                                        prevMemos[memoIndex].todos[
+                                          todoIndex
+                                        ].isCompleted = !todo.isCompleted;
+
+                                        supabase
+                                          .from("memos")
+                                          .update({
+                                            todos: prevMemos[memoIndex].todos,
+                                          })
+                                          .match({ id: memo.id })
+                                          .then(({ data, error }) => {
+                                            setIsLoading(false);
+                                            if (error) console.log(error);
+                                            else fetchMemos();
+                                          });
+                                        return prevMemos;
+                                      });
+                                    }}
+                                    className={`w-4 h-4 rounded-full border border-black ${
+                                      todo?.isCompleted ? "bg-black" : null
+                                    }`}
+                                  />
+
+                                  <p key={todo.id + "p"} className="">
+                                    {todo?.task}
+                                  </p>
+                                </div>
+                              </>
+                            );
+                          })}
+                        </div>
+                        <div>
+                          <CodeEditor
+                            value={memo?.code}
+                            language="js"
+                            disabled
+                            placeholder="Please enter JS code."
+                            padding={15}
+                            style={{
+                              fontSize: 12,
+                              backgroundColor: "#f5f5f5",
+                              fontFamily:
+                                "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                            }}
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            deleteMemo(memo.id);
+                          }}
+                        >
+                          delete
+                        </button>
+                      </div>
+                    </>
                   );
                 })}
-              </div>
-              <div className="flex flex-col gap-2">
-                <span>Enter Some JS Code</span>
-                <CodeEditor
-                  value={code}
-                  language="js"
-                  placeholder="Please enter JS code."
-                  onChange={(evn) => setCode(evn.target.value)}
-                  padding={15}
-                  style={{
-                    fontSize: 12,
-                    backgroundColor: "#f5f5f5",
-                    fontFamily:
-                      "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                  }}
-                />
-              </div>
-              <div>
-                <button onClick={saveMemo}>Save</button>
-              </div>
+              </>
             </div>
-            <div>
-              {memos.map((memo) => {
-                return (
-                  <>
-                    <div className="bg-white p-4 rounded flex flex-col">
-                      <p>{memo.text}</p>
-                      <div className="flex flex-col">
-                        <span>Tasks</span>
-                        {memo.todos.map((todo, i) => {
-                          return (
-                            <>
-                              <div
-                                className="flex justify-between"
-                                key={todo.id}
-                              >
-                                <div
-                                  onClick={() => {
-                                    setTodos((prevTodos) => {
-                                      todo.isCompleted = !todo.isCompleted;
-                                      prevTodos[i] = todo;
-                                      supabase
-                                        .from("memos")
-                                        .update({ todos: prevTodos })
-                                        .match({ userId: user?.id })
-                                        .then(({ data, error }) => {
-                                          if (error) console.log(error);
-                                          else console.log(data);
-                                          setUpdated(Date.now().toString());
-                                        });
-                                      return prevTodos;
-                                    });
-                                  }}
-                                  className={`w-4 h-4 rounded-full border border-black ${
-                                    todo?.isCompleted ? "bg-black" : null
-                                  }`}
-                                />
-
-                                <p className="">{todo?.task}</p>
-                              </div>
-                            </>
-                          );
-                        })}
-                      </div>
-                      <div>
-                        <CodeEditor
-                          value={memo?.code}
-                          language="js"
-                          disabled
-                          placeholder="Please enter JS code."
-                          padding={15}
-                          style={{
-                            fontSize: 12,
-                            backgroundColor: "#f5f5f5",
-                            fontFamily:
-                              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                          }}
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          deleteMemo(memo.id);
-                        }}
-                      >
-                        delete
-                      </button>
-                    </div>
-                  </>
-                );
-              })}
-            </div>
-          </div>
+          )}
         </div>
       ) : (
         <AuthForm />
