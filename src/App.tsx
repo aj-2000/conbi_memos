@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
-import AuthForm from "./components/AuthForm";
+
 import supabase from "./utils/supabase.js";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { v4 as uuidv4 } from "uuid";
@@ -13,7 +13,7 @@ import { FcCheckmark } from "react-icons/fc";
 import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
 import { languages } from "./data/languages";
-
+import { FcGoogle } from "react-icons/fc";
 type Todo = {
   task: string;
   isCompleted: boolean;
@@ -44,7 +44,7 @@ function App() {
 
   //get user from session
   useEffect(() => {
-    if (user?.role === "authenticated") {
+    if (!user) {
       supabase.auth
         .getSession()
         .then(({ data, error }: any) => {
@@ -140,6 +140,21 @@ function App() {
       notify("Memo deleted successfully.");
     }
   };
+
+  async function signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+    if(error){
+      notify("An error occured while signing in.")
+      
+    } else {
+      setUser((data));
+      notify("Signed in successfully.");
+    }
+    
+  }
+
   return (
     <div className="App">
       <div>
@@ -413,7 +428,15 @@ function App() {
           )}
         </div>
       ) : (
-        <AuthForm />
+        <div className="flex justify-center items-center w-screen h-screen bg-black">
+          <div
+            onClick={signInWithGoogle}
+            className="flex justify-center items-center bg-white rounded-lg py-2 px-4 gap-x-2 shadow-sm hover:shadow hover:cursor-pointer"
+          >
+            <FcGoogle className="hover:scale-125" size={26} />
+            <span className="text-lg font-extralight capitalize">Sign In</span>
+          </div>
+        </div>
       )}
     </div>
   );
