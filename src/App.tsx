@@ -40,7 +40,7 @@ function App() {
   const [memos, setMemos] = useState<MemoBlock[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
-    if (!user?.id) {
+    if (user?.id) {
       supabase.auth
         .getSession()
         .then(({ data, error }: any) => {
@@ -343,7 +343,7 @@ function App() {
                                           return prevMemos;
                                         });
                                       }}
-                                      className="flex justify-center items-center p-[0.5px] w-6 h-6 rounded-full border border-black"
+                                      className="flex justify-center items-center p-[0.5px] w-6 h-6 rounded-full border border-black cursor-pointer"
                                     >
                                       {" "}
                                       {todo?.isCompleted ? (
