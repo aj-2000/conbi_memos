@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+   
     "@supabase/supabase-js": "^2.1.1",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
@@ -13,11 +14,14 @@
     "@types/react-dom": "^18.0.0",
     "@types/uuid": "^8.3.4",
     "@uiw/react-textarea-code-editor": "^2.0.6",
+    "date-format": "^4.0.14",
+    "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.0",
     "react-icons": "^4.6.0",
     "react-scripts": "5.0.1",
+    "react-toastify": "^9.1.1",
     "supabase": "^1.15.0",
     "typescript": "^4.4.2",
     "uuid": "^9.0.0",
