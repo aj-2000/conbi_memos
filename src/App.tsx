@@ -146,7 +146,7 @@ function App() {
     });
     if (error) {
       notify("An error occured while signing in.");
-    } 
+    }
   }
 
   return (
@@ -417,6 +417,9 @@ function App() {
                     </>
                   );
                 })}
+                <p className="text-center text-sm italic text-gray-400 mt-2">
+                  All memos are ready 🎉
+                </p>
               </div>
             </div>
           )}
