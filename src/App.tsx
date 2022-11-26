@@ -52,8 +52,7 @@ function App() {
           notify("Signed in successfully.");
         })
         .catch((err: any) => {
-          console.log(err);
-          notify("An error occured while signing in.");
+          notify("Please Sign In to continue.");
         });
     }
   }, []);
@@ -145,14 +144,9 @@ function App() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
     });
-    if(error){
-      notify("An error occured while signing in.")
-      
-    } else {
-      setUser((data));
-      notify("Signed in successfully.");
-    }
-    
+    if (error) {
+      notify("An error occured while signing in.");
+    } 
   }
 
   return (
