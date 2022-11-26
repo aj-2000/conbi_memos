@@ -6,6 +6,7 @@ const AuthForm = () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
     });
+    console.log(error)
   }
   return (
     <div className="flex justify-center items-center w-screen h-screen bg-black">

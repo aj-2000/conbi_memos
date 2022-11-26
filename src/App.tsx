@@ -11,9 +11,9 @@ import { CiSaveUp1 } from "react-icons/ci";
 import { AiOutlineDelete } from "react-icons/ai";
 import { FcCheckmark } from "react-icons/fc";
 import "react-toastify/dist/ReactToastify.css";
-
 import moment from "moment";
 import { languages } from "./data/languages";
+
 type Todo = {
   task: string;
   isCompleted: boolean;
@@ -28,7 +28,9 @@ type MemoBlock = {
   todos: Todo[];
   created_at: string;
 };
+
 const notify = (message: string) => toast(message);
+
 function App() {
   const [user, setUser] = useState<any>(null);
   const [task, setTask] = useState<string>("");
@@ -39,8 +41,10 @@ function App() {
   const [updated, setUpdated] = useState<string>();
   const [memos, setMemos] = useState<MemoBlock[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  //get user from session
   useEffect(() => {
-    if (user?.id) {
+    if (user?.role === "authenticated") {
       supabase.auth
         .getSession()
         .then(({ data, error }: any) => {
@@ -71,6 +75,7 @@ function App() {
       });
   };
 
+  //fetching memos from db
   useEffect(() => {
     if (user?.id) fetchMemos();
     return () => {
@@ -279,7 +284,9 @@ function App() {
                         className="bg-white p-4 rounded flex flex-col gap-4 hover:border-2 hover:border-gray-200 hover:shadow"
                       >
                         <div className="text-sm text-gray-400 ">
-                          {moment(memo.created_at).utcOffset(330).format("MM/DD/YYYY HH:mm:ss")}
+                          {moment(memo.created_at)
+                            .utcOffset(330)
+                            .format("MM/DD/YYYY HH:mm:ss")}
                         </div>
 
                         {memo.text !== "" ? <p>{memo.text}</p> : null}
