@@ -13,7 +13,7 @@ import { FcCheckmark } from "react-icons/fc";
 import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
 import { languages } from "./data/languages";
-import { FcGoogle } from "react-icons/fc";
+import AuthForm from "./components/AuthForm";
 type Todo = {
   task: string;
   isCompleted: boolean;
@@ -66,11 +66,12 @@ function App() {
       .eq("userId", user?.id)
       .then(({ data, error }) => {
         setIsLoading(false);
-        const memosData: MemoBlock[] = [];
-        data?.map((memo) => {
-          memosData.push(memo);
-        });
-        setMemos(memosData);
+        if (error) {
+          notify("An error occurred while fetching memos.");
+        } else {
+          const memosData: MemoBlock[] = [...data];
+          setMemos(memosData);
+        }
       });
   };
 
@@ -140,15 +141,6 @@ function App() {
     }
   };
 
-  async function signInWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) {
-      notify("An error occured while signing in.");
-    }
-  }
-
   return (
     <div className="App">
       <div>
@@ -159,6 +151,7 @@ function App() {
           <div className="flex rounded justify-between px-2 md:px-4 bg-white w-screen">
             <div className="flex py-2 rounded-lg gap-x-2">
               <img
+                alt={user?.identities?.at(0).identity_data.full_name}
                 className="rounded-full min-w-[40px] max-w-[40px] h-[40px]"
                 src={user?.identities?.at(0).identity_data.avatar_url}
               />
@@ -344,15 +337,19 @@ function App() {
                                                   })
                                                   .eq("userId", user?.id)
                                                   .then(({ data, error }) => {
-                                                    const memosData: MemoBlock[] =
-                                                      [];
-                                                    data?.map((memo) => {
-                                                      memosData.push(memo);
-                                                    });
-                                                    setMemos(memosData);
-                                                    toast(
-                                                      "Reponse updated successfully."
-                                                    );
+                                                    if (error) {
+                                                      notify(
+                                                        "An error occurred while updating the response."
+                                                      );
+                                                    } else {
+                                                      const memosData: MemoBlock[] =
+                                                        [...data];
+
+                                                      setMemos(memosData);
+                                                      notify(
+                                                        "Reponse updated successfully."
+                                                      );
+                                                    }
                                                   });
                                               }
                                             });
@@ -425,15 +422,7 @@ function App() {
           )}
         </div>
       ) : (
-        <div className="flex justify-center items-center w-screen h-screen bg-black">
-          <div
-            onClick={signInWithGoogle}
-            className="flex justify-center items-center bg-white rounded-lg py-2 px-4 gap-x-2 shadow-sm hover:shadow hover:cursor-pointer"
-          >
-            <FcGoogle className="hover:scale-125" size={26} />
-            <span className="text-lg font-extralight capitalize">Sign In</span>
-          </div>
-        </div>
+        <AuthForm />
       )}
     </div>
   );
