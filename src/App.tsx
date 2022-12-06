@@ -14,6 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
 import { languages } from "./data/languages";
 import AuthForm from "./components/AuthForm";
+
 type Todo = {
   task: string;
   isCompleted: boolean;
@@ -42,21 +43,6 @@ function App() {
   const [memos, setMemos] = useState<MemoBlock[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  //get user from session
-  useEffect(() => {
-    if (!user) {
-      supabase.auth
-        .getSession()
-        .then(({ data, error }: any) => {
-          setUser(data.session.user);
-          notify("Signed in successfully.");
-        })
-        .catch((err: any) => {
-          notify("Please Sign In to continue.");
-        });
-    }
-  }, []);
-
   const fetchMemos = () => {
     setIsLoading(true);
     supabase
@@ -75,13 +61,21 @@ function App() {
       });
   };
 
-  //fetching memos from db
   useEffect(() => {
-    if (user?.id) fetchMemos();
-    return () => {
-      setMemos([]);
-    };
-  }, [user?.id, updated]);
+    //get user from session
+    if (!user) {
+      supabase.auth.getSession().then(({ data, error }: any) => {
+        if (data.session) {
+          setUser(data.session?.user);
+          notify("Signed in successfully.");
+        } else {
+          notify("Please Sign In to continue.");
+        }
+      });
+    } else {
+      fetchMemos();
+    }
+  }, [user, updated]);
 
   const logout = async () => {
     setIsLoading(true);
@@ -226,7 +220,7 @@ function App() {
                           key={todo.id}
                           className="text-white bg-sky-500 rounded-md p-2 shadow-sm"
                         >
-                          {`#${i + 1} ${todo.task}`}
+                          {`#${i++} ${todo.task}`}
                         </span>
                       );
                     })}
