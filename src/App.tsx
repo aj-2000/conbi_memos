@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
-
+import parse from "html-react-parser";
 import supabase from "./utils/supabase.js";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { v4 as uuidv4 } from "uuid";
@@ -14,7 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
 import { languages } from "./data/languages";
 import AuthForm from "./components/AuthForm";
-
+import TipTap from "./components/TipTap/TipTap";
 type Todo = {
   task: string;
   isCompleted: boolean;
@@ -175,13 +175,8 @@ function App() {
                 Conbi Memos
               </span>
               <div className="bg-white p-4 rounded flex flex-col gap-4 border-1 border-gray-200 my-6 shadow">
-                <textarea
-                  onChange={(e) => setText(e.target.value)}
-                  className="p-2 bg-gradient-to-t rounded shadow-sm border-2 border-gray-200"
-                  rows={4}
-                  value={text}
-                  placeholder="Any Thoughts..."
-                />
+                <TipTap setText={setText} />
+
                 <div className="flex flex-col gap-2">
                   <span className="uppercase text-sky-500 font-bold">
                     #Tasks
@@ -285,7 +280,9 @@ function App() {
                             .format("MM/DD/YYYY HH:mm:ss")}
                         </div>
 
-                        {memo.text !== "" ? <p>{memo.text}</p> : null}
+                        {memo.text !== "" ? (
+                          <div>{parse(memo.text)}</div>
+                        ) : null}
                         {memo.todos.length > 0 ? (
                           <div className="flex flex-col gap-2">
                             <span
