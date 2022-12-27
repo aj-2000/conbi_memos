@@ -1,4 +1,3 @@
-import React from "react";
 import "./styles.scss";
 import {
   FaBold,
@@ -10,7 +9,7 @@ import {
   FaUndo,
   FaRedo,
 } from "react-icons/fa";
-import { GoListOrdered, GoListUnordered } from "react-icons/go";
+import { GoListOrdered } from "react-icons/go";
 import { BsCodeSquare } from "react-icons/bs";
 import { MdHorizontalRule } from "react-icons/md";
 const MenuBar = ({ editor }: any) => {
@@ -71,18 +70,6 @@ const MenuBar = ({ editor }: any) => {
         H2
       </button>
 
-      <button
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 ${editor.isActive("bulletList") ? "is-active" : ""}`}
-      >
-        <FaList />
-      </button>
-      <button
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 ${editor.isActive("orderedList") ? "is-active" : ""}`}
-      >
-        <GoListOrdered />
-      </button>
       <button
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
         className={`p-2 ${editor.isActive("codeBlock") ? "is-active" : ""}`}

@@ -30,7 +30,9 @@ type MemoBlock = {
   created_at: string;
 };
 
-const notify = (message: string) => toast(message);
+const notifyInfo = (message: string) => toast.info(message);
+const notifySuccess = (message: string) => toast.success(message);
+const notifyError = (message: string) => toast.error(message);
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -53,7 +55,7 @@ function App() {
       .then(({ data, error }) => {
         setIsLoading(false);
         if (error) {
-          notify("An error occurred while fetching memos.");
+          notifyError("An error occurred while fetching memos.");
         } else {
           const memosData: MemoBlock[] = [...data];
           setMemos(memosData);
@@ -67,14 +69,17 @@ function App() {
       supabase.auth.getSession().then(({ data, error }: any) => {
         if (data.session) {
           setUser(data.session?.user);
-          notify("Signed in successfully.");
+          notifySuccess("Signed in successfully.");
         } else {
-          notify("Please Sign In to continue.");
+          console.log("2");
+          // toast.success
+          notifyInfo("Please Sign In to continue.");
         }
       });
     } else {
       fetchMemos();
     }
+    console.log("3");
   }, [user, updated]);
 
   const logout = async () => {
@@ -82,11 +87,11 @@ function App() {
     await supabase.auth.signOut().then(({ error }: any) => {
       if (error) {
         console.log(error);
-        notify("An error occured while logging out.");
+        notifyError("An error occured while logging out.");
       } else {
         setUser(null);
         setIsLoading(false);
-        notify("Logged out successfully.");
+        notifySuccess("Logged out successfully.");
       }
     });
   };
@@ -110,15 +115,15 @@ function App() {
             setCode("");
             setTodos([]);
             setCodeType("js");
-            notify("Memo successfully saved.");
+            notifySuccess("Memo successfully saved.");
             setUpdated(Date.now().toString());
           } else {
-            notify("Failed to save memo.");
+            notifyError("Failed to save memo.");
           }
           setIsLoading(false);
         });
     } else {
-      notify("Empty memo can not be saved.");
+      notifyInfo("Empty memo can not be saved.");
     }
   };
   const deleteMemo = async (id: string) => {
@@ -127,19 +132,16 @@ function App() {
     if (error) {
       console.log(error);
       setIsLoading(false);
-      notify("An error occurred while deleting the memo.");
+      notifyError("An error occurred while deleting the memo.");
     } else {
       setUpdated(Date.now().toString());
       setIsLoading(false);
-      notify("Memo deleted successfully.");
+      notifySuccess("Memo deleted successfully.");
     }
   };
 
   return (
     <div className="App">
-      <div>
-        <ToastContainer />
-      </div>
       {user?.role ? (
         <div className="w-screen h-screen overflow-auto bg-gray-100 flex flex-col items-center">
           <div className="flex rounded justify-between px-2 md:px-4 bg-white w-screen">
@@ -329,7 +331,7 @@ function App() {
                                                   .eq("userId", user?.id)
                                                   .then(({ data, error }) => {
                                                     if (error) {
-                                                      notify(
+                                                      notifyError(
                                                         "An error occurred while updating the response."
                                                       );
                                                     } else {
@@ -337,7 +339,7 @@ function App() {
                                                         [...data];
 
                                                       setMemos(memosData);
-                                                      notify(
+                                                      notifySuccess(
                                                         "Reponse updated successfully."
                                                       );
                                                     }
@@ -415,6 +417,7 @@ function App() {
       ) : (
         <AuthForm />
       )}
+      <ToastContainer />
     </div>
   );
 }

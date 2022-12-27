@@ -5,3 +5,18 @@
 .is-active {
   @apply bg-black text-white;
 }
+.ProseMirror {
+  padding: 1rem 0 3rem;
+}
+
+.ProseMirror p {
+  @apply font-light;
+}
+
+.ProseMirror h1 {
+  @apply font-extrabold text-5xl;
+}
+
+.ProseMirror h2 {
+  @apply font-bold text-4xl;
+}
